@@ -55,6 +55,14 @@ sudo apt update && sudo apt upgrade -y
 
 ## 2. Install base system dependencies
 
+Run the install as a single command. If you break it across lines, make sure the
+line-continuation `\` characters are included or the shell will try to execute
+each package name as its own command.
+
+Recommended (single line):
+sudo apt install -y curl git build-essential ca-certificates
+
+Or multi-line (copy exactly, including the trailing `\`):
 sudo apt install -y \
   curl \
   git \
