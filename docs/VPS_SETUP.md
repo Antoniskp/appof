@@ -137,6 +137,11 @@ sudo git clone <REPO_URL> news-superapp
 sudo chown -R $USER:$USER news-superapp
 cd news-superapp
 
+or for this repo :
+git clone https://github.com/Antoniskp/appof.git
+cd appof
+
+
 ---
 
 ## 9. Environment configuration
