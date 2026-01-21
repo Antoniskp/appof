@@ -1,0 +1,12 @@
+{
+  "name": "@news/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"console.log('web dev not implemented')\"",
+    "build": "node -e \"console.log('web build not implemented')\"",
+    "lint": "node -e \"console.log('web lint not implemented')\"",
+    "typecheck": "node -e \"console.log('web typecheck not implemented')\"",
+    "test": "node -e \"console.log('web test not implemented')\""
+  }
+}

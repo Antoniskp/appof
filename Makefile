@@ -13,7 +13,7 @@ build:
 	pnpm -C apps/web build
 
 lint:
-	pnpm lint -r
+	pnpm -C apps/api lint
 
 typecheck:
 	pnpm typecheck -r
@@ -30,4 +30,3 @@ test-web:
 doctor:
 	node -v
 	pnpm -v
-
