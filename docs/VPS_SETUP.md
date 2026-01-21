@@ -1,0 +1,156 @@
+# VPS_SETUP
+
+This document describes the exact steps required to set up and run the project
+on a fresh Ubuntu server. All commands are intended to be executed as a user
+with sudo privileges.
+
+Target OS:
+- Ubuntu 22.04 or newer
+
+This document is authoritative. Do not improvise commands outside this file.
+
+---
+
+## 1. System update
+
+sudo apt update && sudo apt upgrade -y
+
+---
+
+## 2. Install base system dependencies
+
+sudo apt install -y \
+  curl \
+  git \
+  build-essential \
+  ca-certificates
+
+---
+
+## 3. Install Node.js (LTS)
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+Verify:
+node -v
+npm -v
+
+---
+
+## 4. Install pnpm
+
+corepack enable
+corepack prepare pnpm@latest --activate
+
+Verify:
+pnpm -v
+
+---
+
+## 5. Install PostgreSQL
+
+sudo apt install -y postgresql postgresql-contrib
+
+Start and enable:
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
+
+Verify:
+sudo systemctl status postgresql --no-pager
+
+---
+
+## 6. Create database and user
+
+sudo -u postgres psql <<EOF
+CREATE USER news_user WITH PASSWORD 'change_me';
+CREATE DATABASE news_db OWNER news_user;
+EOF
+
+NOTE:
+- Replace password later with a secure value.
+- Update .env accordingly.
+
+---
+
+## 7. Clone the repository
+
+cd /srv
+sudo git clone <REPO_URL> news-superapp
+sudo chown -R $USER:$USER news-superapp
+cd news-superapp
+
+---
+
+## 8. Environment configuration
+
+cp .env.example .env
+
+Edit .env:
+nano .env
+
+Required variables (example):
+DATABASE_URL=postgresql://news_user:change_me@localhost:5432/news_db
+API_PORT=4000
+WEB_PORT=3000
+NODE_ENV=production
+
+---
+
+## 9. Install dependencies
+
+pnpm install
+
+---
+
+## 10. Database migrations
+
+pnpm -C apps/api prisma migrate deploy
+
+---
+
+## 11. Build applications
+
+make build
+
+Expected:
+- apps/api builds successfully
+- apps/web builds successfully
+
+---
+
+## 12. Run in production (temporary foreground test)
+
+API:
+cd apps/api
+pnpm start
+
+In another shell:
+curl http://localhost:4000/health
+
+Expected:
+HTTP 200
+{ "status": "ok" }
+
+Stop API with Ctrl+C.
+
+---
+
+## 13. Verification checklist
+
+- node -v prints Node 20+
+- pnpm -v prints version
+- postgres is running
+- pnpm install succeeds
+- make build succeeds
+- /health endpoint responds with 200
+
+---
+
+## 14. Next steps (not yet implemented)
+
+- systemd services
+- reverse proxy (nginx)
+- TLS
+- firewall hardening
