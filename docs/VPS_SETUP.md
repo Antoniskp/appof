@@ -11,6 +11,38 @@ This document is authoritative. Do not improvise commands outside this file.
 
 ---
 
+## 0. Fix SSH runtime dir and keepalive
+
+These steps ensure the SSH daemon has its runtime directory after boot and keeps
+connections alive to avoid idle disconnects.
+
+Create the runtime directory, persist it across reboots, and restart sshd:
+
+sudo mkdir -p /run/sshd
+sudo chmod 0755 /run/sshd
+sudo tee /etc/tmpfiles.d/sshd.conf >/dev/null <<'EOF'
+d /run/sshd 0755 root root -
+EOF
+sudo systemd-tmpfiles --create
+sudo systemctl restart ssh
+
+Configure keepalive settings and restart sshd:
+
+sudo tee -a /etc/ssh/sshd_config >/dev/null <<'EOF'
+ClientAliveInterval 60
+ClientAliveCountMax 5
+TCPKeepAlive yes
+EOF
+sudo systemctl restart ssh
+
+Explanation:
+- /run/sshd is required by sshd; tmpfiles recreates it on boot.
+- ClientAliveInterval sends a keepalive every 60 seconds.
+- ClientAliveCountMax disconnects after 5 missed keepalives.
+- TCPKeepAlive enables TCP keepalive probes at the OS level.
+
+---
+
 ## 1. System update
 
 sudo apt update && sudo apt upgrade -y
