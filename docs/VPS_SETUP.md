@@ -11,7 +11,7 @@ This document is authoritative. Do not improvise commands outside this file.
 
 ---
 
-## 0) Fix SSH runtime dir (prevents "Missing /run/sshd")
+## 0. Fix SSH runtime dir (prevents "Missing /run/sshd")
 
 These steps ensure the SSH daemon has its runtime directory after boot and keeps
 connections alive to avoid idle disconnects.
@@ -26,7 +26,7 @@ EOF
 systemd-tmpfiles --create
 systemctl restart ssh
 
-## 1) SSH keepalive
+## 1. SSH keepalive
 
 Configure keepalive settings and restart sshd:
 
@@ -41,19 +41,19 @@ systemctl restart ssh
 
 Explanation:
 - /run/sshd is required by sshd; tmpfiles recreates it on boot.
-- ClientAliveInterval sends a keepalive every 60 seconds.
+- ClientAliveInterval sends a keepalive every 300 seconds.
 - ClientAliveCountMax disconnects after 5 missed keepalives.
 - TCPKeepAlive enables TCP keepalive probes at the OS level.
 
 ---
 
-## 1. System update
+## 2. System update
 
 sudo apt update && sudo apt upgrade -y
 
 ---
 
-## 2. Install base system dependencies
+## 3. Install base system dependencies
 
 Run the install as a single command. If you break it across lines, make sure the
 line-continuation `\` characters are included or the shell will try to execute
@@ -71,7 +71,7 @@ sudo apt install -y \
 
 ---
 
-## 3. Install Node.js (LTS)
+## 4. Install Node.js (LTS)
 
 If you see an older version like `v12.x` or `npm` is missing, remove the
 distro-provided Node first:
@@ -91,7 +91,7 @@ npm -v
 
 ---
 
-## 4. Install pnpm
+## 5. Install pnpm
 
 corepack enable
 corepack prepare pnpm@latest --activate
@@ -101,7 +101,7 @@ pnpm -v
 
 ---
 
-## 5. Install PostgreSQL
+## 6. Install PostgreSQL
 
 sudo apt install -y postgresql postgresql-contrib
 
@@ -114,7 +114,7 @@ sudo systemctl status postgresql --no-pager
 
 ---
 
-## 6. Create database and user
+## 7. Create database and user
 
 sudo -u postgres psql <<EOF
 CREATE USER news_user WITH PASSWORD 'change_me';
@@ -127,7 +127,7 @@ NOTE:
 
 ---
 
-## 7. Clone the repository
+## 8. Clone the repository
 
 cd /srv
 sudo git clone <REPO_URL> news-superapp
@@ -136,7 +136,7 @@ cd news-superapp
 
 ---
 
-## 8. Environment configuration
+## 9. Environment configuration
 
 cp .env.example .env
 
@@ -151,19 +151,19 @@ NODE_ENV=production
 
 ---
 
-## 9. Install dependencies
+## 10. Install dependencies
 
 pnpm install
 
 ---
 
-## 10. Database migrations
+## 11. Database migrations
 
 pnpm -C apps/api prisma migrate deploy
 
 ---
 
-## 11. Build applications
+## 12. Build applications
 
 make build
 
@@ -173,7 +173,7 @@ Expected:
 
 ---
 
-## 12. Run in production (temporary foreground test)
+## 13. Run in production (temporary foreground test)
 
 API:
 cd apps/api
@@ -190,7 +190,7 @@ Stop API with Ctrl+C.
 
 ---
 
-## 13. Verification checklist
+## 14. Verification checklist
 
 - node -v prints Node 20+
 - pnpm -v prints version
@@ -201,7 +201,7 @@ Stop API with Ctrl+C.
 
 ---
 
-## 14. Next steps (not yet implemented)
+## 15. Next steps (not yet implemented)
 
 - systemd services
 - reverse proxy (nginx)
