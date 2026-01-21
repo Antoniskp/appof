@@ -1,14 +1,15 @@
 # STATE
 
 ## Verified working (with date)
-- None yet.
+- 2026-01-21: make test-api
 
 ## Broken / failing
-- None recorded.
+- 2026-01-21: make lint (eslint CLI error: invalid option '-r')
+- 2026-01-21: make build (apps/web missing package.json)
 
 ## Environment assumptions
 - Node: (fill)
-- pnpm: (fill)
+- pnpm: 9.0.0
 
 ## Next task
 - A1

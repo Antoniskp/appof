@@ -1,7 +1,7 @@
 # TASKS
 
 ## Milestone A: Baseline
-- [ ] A1 API health endpoint
+- [x] A1 API health endpoint
 - [ ] A2 Web homepage calls /health
 
 ## Milestone B: Auth
