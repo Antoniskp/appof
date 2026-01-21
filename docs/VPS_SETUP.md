@@ -20,11 +20,14 @@ Create the runtime directory, persist it across reboots, and restart sshd:
 
 mkdir -p /run/sshd
 chmod 0755 /run/sshd
+
 cat >/etc/tmpfiles.d/sshd.conf <<'EOF'
 d /run/sshd 0755 root root -
 EOF
+
 systemd-tmpfiles --create
 systemctl restart ssh
+
 
 ## 1. SSH keepalive
 
