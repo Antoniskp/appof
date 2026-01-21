@@ -11,29 +11,31 @@ This document is authoritative. Do not improvise commands outside this file.
 
 ---
 
-## 0. Fix SSH runtime dir and keepalive
+## 0) Fix SSH runtime dir (prevents "Missing /run/sshd")
 
 These steps ensure the SSH daemon has its runtime directory after boot and keeps
 connections alive to avoid idle disconnects.
 
 Create the runtime directory, persist it across reboots, and restart sshd:
 
-sudo mkdir -p /run/sshd
-sudo chmod 0755 /run/sshd
-sudo tee /etc/tmpfiles.d/sshd.conf >/dev/null <<'EOF'
+mkdir -p /run/sshd
+chmod 0755 /run/sshd
+cat >/etc/tmpfiles.d/sshd.conf <<'EOF'
 d /run/sshd 0755 root root -
 EOF
-sudo systemd-tmpfiles --create
-sudo systemctl restart ssh
+systemd-tmpfiles --create
+systemctl restart ssh
 
-Configure keepalive settings with a dedicated drop-in file and restart sshd:
+## 1) SSH keepalive
 
-sudo tee /etc/ssh/sshd_config.d/keepalive.conf >/dev/null <<'EOF'
+Configure keepalive settings and restart sshd:
+
+cat >> /etc/ssh/sshd_config <<'EOF'
 ClientAliveInterval 60
 ClientAliveCountMax 5
 TCPKeepAlive yes
 EOF
-sudo systemctl restart ssh
+systemctl restart ssh
 
 Explanation:
 - /run/sshd is required by sshd; tmpfiles recreates it on boot.
