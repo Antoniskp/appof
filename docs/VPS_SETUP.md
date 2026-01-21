@@ -26,9 +26,9 @@ EOF
 sudo systemd-tmpfiles --create
 sudo systemctl restart ssh
 
-Configure keepalive settings and restart sshd:
+Configure keepalive settings with a dedicated drop-in file and restart sshd:
 
-sudo tee -a /etc/ssh/sshd_config >/dev/null <<'EOF'
+sudo tee /etc/ssh/sshd_config.d/keepalive.conf >/dev/null <<'EOF'
 ClientAliveInterval 60
 ClientAliveCountMax 5
 TCPKeepAlive yes
