@@ -73,8 +73,17 @@ sudo apt install -y \
 
 ## 3. Install Node.js (LTS)
 
+If you see an older version like `v12.x` or `npm` is missing, remove the
+distro-provided Node first:
+sudo apt remove -y nodejs npm || true
+sudo apt autoremove -y
+
+Install Node 20 (LTS) from NodeSource:
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
+
+If `npm` is still missing, install it explicitly:
+sudo apt install -y npm
 
 Verify:
 node -v
