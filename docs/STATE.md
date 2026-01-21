@@ -12,4 +12,4 @@
 - pnpm: 9.0.0
 
 ## Next task
-- A1
+- A2
