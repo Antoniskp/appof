@@ -30,12 +30,12 @@ systemctl restart ssh
 
 Configure keepalive settings and restart sshd:
 
-cat >> /etc/ssh/sshd_config <<'EOF'
-ClientAliveInterval 60
+cat >> /etc/ssh/sshd_config <<'EOF' && systemctl restart ssh
+ClientAliveInterval 300
 ClientAliveCountMax 5
 TCPKeepAlive yes
 EOF
-systemctl restart ssh
+
 
 Explanation:
 - /run/sshd is required by sshd; tmpfiles recreates it on boot.
