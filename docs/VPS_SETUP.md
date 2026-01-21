@@ -36,7 +36,6 @@ ClientAliveCountMax 5
 TCPKeepAlive yes
 EOF
 
-
 Explanation:
 - /run/sshd is required by sshd; tmpfiles recreates it on boot.
 - ClientAliveInterval sends a keepalive every 60 seconds.
