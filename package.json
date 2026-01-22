@@ -4,7 +4,6 @@
   "packageManager": "pnpm@9.0.0",
   "scripts": {
     "lint": "pnpm -r lint",
-    "prisma:migrate:deploy": "pnpm --filter @news/api exec node --env-file ../../.env prisma migrate deploy --schema prisma/schema.prisma",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
   }
