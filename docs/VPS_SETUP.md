@@ -103,6 +103,9 @@ npm -v
 
 ## 5. Install pnpm
 
+npm install -g pnpm
+
+NoNOOOOOO
 corepack enable
 corepack prepare pnpm@latest --activate
 
