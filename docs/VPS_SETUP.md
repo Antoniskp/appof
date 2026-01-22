@@ -155,6 +155,7 @@ sudo chown -R $USER:$USER news-superapp
 cd news-superapp
 
 or for this repo :
+cd /srv
 git clone https://github.com/Antoniskp/appof.git
 cd appof
 
@@ -163,17 +164,25 @@ cd appof
 
 ## 9. Environment configuration
 
+Install nano
+
+sudo apt update
+sudo apt install -y nano
+
+Create .env from .env.example
 cp .env.example .env
 
 Edit .env:
 nano .env
 
-Required variables (example):
+Required variables (example): Change changeme to the password you used at step 7
 DATABASE_URL=postgresql://news_user:change_me@localhost:5432/news_db
 API_PORT=4000
 WEB_PORT=3000
 NODE_ENV=production
 
+To save and exit nano
+Ctr+o, enter, ctrl+x
 ---
 
 ## 10. Install dependencies
