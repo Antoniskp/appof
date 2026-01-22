@@ -2,7 +2,7 @@
 
 ## Milestone A: Baseline
 - [ ] A1 API health endpoint
-- [ ] A2 Web homepage calls /health
+- [x] A2 Web homepage (completed 2026-01-22)
 
 ## Milestone B: Auth
 - [ ] B1 User model + migration
