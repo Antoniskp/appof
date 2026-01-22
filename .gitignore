@@ -2,3 +2,8 @@ node_modules/
 apps/api/node_modules/
 apps/api/dist/
 apps/api/.env
+apps/web/.next/
+apps/web/out/
+apps/web/.env.local
+apps/web/.env.production.local
+apps/web/next-env.d.ts

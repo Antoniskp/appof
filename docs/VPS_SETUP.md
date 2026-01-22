@@ -267,6 +267,21 @@ HTTP 200
 
 Stop API with Ctrl+C.
 
+Web:
+cd apps/web
+pnpm start
+
+The Next.js app will start on port 3000.
+
+Access the homepage:
+- Locally: http://localhost:3000
+- On VPS: http://185.92.192.81:3000 (ensure port 3000 is open in firewall)
+
+Expected:
+Homepage displays "Appof Web – it works"
+
+Stop web server with Ctrl+C.
+
 ---
 
 ## 14. Verification checklist
@@ -277,6 +292,7 @@ Stop API with Ctrl+C.
 - pnpm install succeeds
 - make build succeeds
 - /health endpoint responds with 200
+- web homepage accessible on port 3000
 
 ---
 
