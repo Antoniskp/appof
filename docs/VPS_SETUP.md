@@ -169,11 +169,16 @@ Install nano
 sudo apt update
 sudo apt install -y nano
 
-Create .env from .env.example
+Create environment files (from repo root):
+cd /srv/appof
 cp .env.example .env
+cp apps/api/.env.example apps/api/.env
 
-Edit .env:
+Edit the root .env:
 nano .env
+
+Edit the API .env (Prisma reads from apps/api when running migrations):
+nano apps/api/.env
 
 Required variables (example): Change changeme to the password you used at step 7
 DATABASE_URL=postgresql://news_user:change_me@localhost:5432/news_db
@@ -192,6 +197,8 @@ pnpm install
 ---
 
 ## 11. Database migrations
+
+Ensure /srv/appof/apps/api/.env exists (from step 9) so Prisma can load DATABASE_URL.
 
 cd /srv/appof/apps/api
 pnpm prisma migrate deploy
