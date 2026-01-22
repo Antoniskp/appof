@@ -193,7 +193,8 @@ pnpm install
 
 ## 11. Database migrations
 
-pnpm -C apps/api prisma migrate deploy
+cd /srv/appof/apps/api
+pnpm prisma migrate deploy
 
 ---
 
