@@ -129,6 +129,13 @@ sudo systemctl status postgresql --no-pager
 
 ## 7. Create database and user
 
+Correct / clean command (no warning)
+Use -c instead of heredoc:
+
+sudo -u postgres psql -c "CREATE USER news_user WITH PASSWORD 'change_me';"
+sudo -u postgres psql -c "CREATE DATABASE news_db OWNER news_user;"
+
+ERRORS
 sudo -u postgres psql <<EOF
 CREATE USER news_user WITH PASSWORD 'change_me';
 CREATE DATABASE news_db OWNER news_user;
