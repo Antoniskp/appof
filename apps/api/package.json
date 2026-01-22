@@ -7,7 +7,6 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint .",
-    "prisma": "node --env-file ../../.env ../../node_modules/.bin/prisma",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test"
   },
