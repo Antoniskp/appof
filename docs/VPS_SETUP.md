@@ -203,6 +203,43 @@ Ensure /srv/appof/apps/api/.env exists (from step 9) so Prisma can load DATABASE
 cd /srv/appof/apps/api
 pnpm prisma migrate deploy
 
+### Troubleshooting: Prisma P1012 Error
+
+If you encounter error P1012 ("DATABASE_URL environment variable not found"), this means Prisma cannot find the DATABASE_URL in its expected location.
+
+**Root Cause:**
+Prisma CLI reads environment variables from the directory where it's executed, NOT from the repository root. When running Prisma commands in apps/api, it looks for .env in apps/api/.
+
+**Fix (Option A - Recommended):**
+
+1. Ensure you are in the correct directory:
+   ```
+   cd /srv/appof/apps/api
+   ```
+
+2. Verify the .env file exists in apps/api:
+   ```
+   ls -la /srv/appof/apps/api/.env
+   ```
+
+3. If missing, create it from the example:
+   ```
+   cp /srv/appof/apps/api/.env.example /srv/appof/apps/api/.env
+   nano /srv/appof/apps/api/.env
+   ```
+
+4. Ensure DATABASE_URL is set correctly:
+   ```
+   DATABASE_URL=postgresql://news_user:change_me@localhost:5432/news_db
+   ```
+
+5. Run the Prisma command from apps/api directory:
+   ```
+   pnpm prisma migrate deploy
+   ```
+
+**Important:** Always run Prisma commands from /srv/appof/apps/api, not from the repository root.
+
 ---
 
 ## 12. Build applications
