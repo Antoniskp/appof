@@ -52,6 +52,13 @@ Explanation:
 
 ## 2. System update
 
+# If your VPS image includes Virtuozzo/OpenVZ repo, it can throw harmless 404s for Translation-en.
+# Disable it for this project setup:
+
+grep -RIn --line-number "repo\.virtuozzo\.com/ctpreset" /etc/apt/sources.list /etc/apt/sources.list.d || true
+sudo sh -c 'grep -RIl "repo\.virtuozzo\.com/ctpreset" /etc/apt/sources.list /etc/apt/sources.list.d | while read -r f; do mv "$f" "$f.disabled"; done' || true
+
+
 sudo apt update && sudo apt upgrade -y
 
 ---
