@@ -376,6 +376,10 @@ Below is a safe, repeatable update/deploy flow you can run on the VPS. This foll
 - You already have .env configured
 - You want to pull latest code, apply DB migrations, rebuild, and restart services
 
+### One-time Git safety setup (if you see "detected dubious ownership")
+
+git config --global --add safe.directory /srv/appof
+
 ### Update and deploy command:
 
 cd /srv/appof && \
