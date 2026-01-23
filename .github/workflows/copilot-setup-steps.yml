@@ -24,7 +24,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:15
         env:
           POSTGRES_USER: news_user
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'change_me' }}
@@ -76,28 +76,24 @@ jobs:
           pnpm -v
       
       # Step 6: Environment configuration (mirrors step 9: Environment configuration)
-      - name: Setup environment files
+      - name: Configure environment variables
         run: |
-          cp .env.example .env
-          cp apps/api/.env.example apps/api/.env
+          # Root .env file
+          echo "DATABASE_URL=${DATABASE_URL}" > .env
+          echo "API_PORT=${API_PORT}" >> .env
+          echo "WEB_PORT=${WEB_PORT}" >> .env
+          echo "NODE_ENV=${NODE_ENV}" >> .env
+          
+          # API .env file
+          echo "DATABASE_URL=${DATABASE_URL}" > apps/api/.env
+          echo "API_PORT=${API_PORT}" >> apps/api/.env
+          echo "WEB_PORT=${WEB_PORT}" >> apps/api/.env
+          echo "NODE_ENV=${NODE_ENV}" >> apps/api/.env
         env:
           DATABASE_URL: postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db
           API_PORT: 4000
           WEB_PORT: 3000
           NODE_ENV: production
-      
-      # Update .env files with actual values
-      - name: Configure environment variables
-        run: |
-          echo "DATABASE_URL=postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db" > .env
-          echo "API_PORT=4000" >> .env
-          echo "WEB_PORT=3000" >> .env
-          echo "NODE_ENV=production" >> .env
-          
-          echo "DATABASE_URL=postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db" > apps/api/.env
-          echo "API_PORT=4000" >> apps/api/.env
-          echo "WEB_PORT=3000" >> apps/api/.env
-          echo "NODE_ENV=production" >> apps/api/.env
       
       # Step 7: Install dependencies (mirrors step 10: Install dependencies)
       - name: Install dependencies
@@ -139,21 +135,24 @@ jobs:
           pnpm start &
           API_PID=$!
           
-          # Wait for API to start
-          sleep 10
+          # Wait for API to start with retry loop
+          max_attempts=30
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ]; then
+              echo "✅ Health endpoint returned 200 OK"
+              kill $API_PID
+              exit 0
+            fi
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts: API not ready yet (response: $response), waiting..."
+            sleep 1
+          done
           
-          # Test health endpoint
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/health)
-          if [ "$response" = "200" ]; then
-            echo "✅ Health endpoint returned 200 OK"
-          else
-            echo "❌ Health endpoint returned $response"
-            kill $API_PID
-            exit 1
-          fi
-          
-          # Cleanup
-          kill $API_PID
+          echo "❌ Health endpoint did not respond after $max_attempts attempts"
+          kill $API_PID 2>/dev/null || true
+          exit 1
         env:
           DATABASE_URL: postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db
           API_PORT: 4000
