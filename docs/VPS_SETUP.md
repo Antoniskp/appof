@@ -251,6 +251,11 @@ The www-data user needs read access to the repository:
 
 sudo chown -R www-data:www-data /srv/appof
 
+The www-data user also needs write access to its HOME directory for pnpm cache/tools:
+
+sudo mkdir -p /var/www/.local/share/pnpm
+sudo chown -R www-data:www-data /var/www
+
 ### Reload systemd daemon to recognize new services:
 
 sudo systemctl daemon-reload
