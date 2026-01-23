@@ -202,7 +202,7 @@ The Next.js app will start on port 3000.
 
 Access the homepage:
 - Locally: http://localhost:3000
-- On VPS: http://185.92.192.81:3000 (ensure port 3000 is open in firewall)
+- On VPS: http://YOUR_SERVER_IP:3000 (replace YOUR_SERVER_IP with your actual server IP; ensure port 3000 is open in firewall)
 
 Expected:
 Homepage displays "Appof Web – it works"
@@ -342,9 +342,9 @@ Test locally:
 
 curl http://localhost:3000
 
-Or open in browser (replace with your server IP):
+Or open in browser (replace YOUR_SERVER_IP with your actual server IP):
 
-http://185.92.192.81:3000
+http://YOUR_SERVER_IP:3000
 
 Expected: Homepage displays "Appof Web – it works"
 
@@ -380,7 +380,12 @@ pnpm prisma migrate deploy && \
 cd /srv/appof && \
 make build && \
 sudo systemctl restart appof-api.service && \
-sudo systemctl restart appof-web.service
+sudo systemctl restart appof-web.service && \
+echo "Deployment complete - verifying services..." && \
+sleep 2 && \
+sudo systemctl is-active --quiet appof-api.service && \
+sudo systemctl is-active --quiet appof-web.service && \
+echo "✓ Both services are running"
 
 ### Verify deployment:
 
@@ -399,7 +404,7 @@ sudo journalctl -u appof-web.service -n 20 --no-pager
 
 ## 19. Nginx Reverse Proxy Setup (Optional)
 
-To make the app available on the server IP (e.g., http://185.92.192.81):
+To make the app available on the server IP (e.g., http://YOUR_SERVER_IP):
 
 ### Step 1: Stop/disable Apache (if running)
 
@@ -420,10 +425,12 @@ curl -I http://localhost:3000
 
 ### Step 4: Configure Nginx reverse proxy
 
+Replace YOUR_SERVER_IP with your actual server IP address:
+
 sudo tee /etc/nginx/sites-available/appof >/dev/null <<'EOF'
 server {
     listen 80;
-    server_name 185.92.192.81;
+    server_name YOUR_SERVER_IP;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -451,7 +458,7 @@ Expected: 200 OK and Next.js response (not Apache).
 
 ### Step 7: Test from browser
 
-http://185.92.192.81
+http://YOUR_SERVER_IP
 
 You should see "Appof Web – it works".
 
