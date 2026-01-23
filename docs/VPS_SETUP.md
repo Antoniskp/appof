@@ -353,11 +353,13 @@ You should see “Appof Web – it works”.
 
 ------------------------------------------
 Not sure if still needed
+
 Recommended: keep it running after SSH disconnect
 Right now if you close SSH, it stops. Use a process manager like pm2:
-
+<code>
 sudo npm install -g pm2
 cd /srv/appof/apps/web
 pm2 start "pnpm start" --name appof-web
 pm2 save
 pm2 startup
+</code>
