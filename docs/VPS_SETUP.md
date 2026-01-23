@@ -393,8 +393,11 @@ echo "✓ Both services are running"
 sudo systemctl status appof-api.service --no-pager
 sudo systemctl status appof-web.service --no-pager
 
-# Verify API health
+# Verify API health endpoint
 curl http://localhost:4000/health
+
+# Verify web service is responding
+curl -I http://localhost:3000
 
 # Check recent logs for errors
 sudo journalctl -u appof-api.service -n 20 --no-pager
