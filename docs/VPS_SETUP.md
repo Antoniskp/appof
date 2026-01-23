@@ -149,7 +149,6 @@ nano apps/api/.env
 Required variables (example): Change changeme to the password you used at step 7
 DATABASE_URL=postgresql://news_user:change_me@localhost:5432/news_db
 API_PORT=4000
-WEB_PORT=3000
 NODE_ENV=production
 
 To save and exit nano
@@ -337,7 +336,7 @@ Content-Type: application/json; charset=utf-8
 
 ### Verify web service:
 
-The web service runs on port 3000 (configurable via WEB_PORT in .env).
+The web service runs on port 3000.
 
 Test locally:
 
