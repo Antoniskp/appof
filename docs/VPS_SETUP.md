@@ -235,8 +235,9 @@ The systemd service files are configured with:
 - **WorkingDirectory**: `/srv/appof` (repository root for pnpm workspace)
 - **EnvironmentFile**: `/srv/appof/.env` (shared environment variables)
 - **User/Group**: `www-data` (standard web service user)
-- **HOME**: `/var/www` (required for pnpm to work properly)
-- **ExecStart**: Uses `pnpm --filter` to run workspace-specific commands
+- **HOME**: `/var/www` (pnpm requires a valid HOME directory; www-data's default home is /var/www)
+- **NODE_ENV**: `production` (ensures both services run in production mode)
+- **ExecStart**: Uses `pnpm --filter @news/api` and `pnpm --filter @news/web` to run workspace-specific commands
 
 ### Copy systemd unit files:
 

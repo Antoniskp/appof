@@ -9,6 +9,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/srv/appof
 Environment=HOME=/var/www
+Environment=NODE_ENV=production
 EnvironmentFile=/srv/appof/.env
 ExecStart=/usr/bin/pnpm --filter @news/api start
 Restart=always
