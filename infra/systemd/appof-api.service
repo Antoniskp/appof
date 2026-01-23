@@ -7,9 +7,10 @@ Wants=postgresql.service
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/srv/appof/apps/api
-EnvironmentFile=/srv/appof/apps/api/.env
-ExecStart=/usr/bin/pnpm start
+WorkingDirectory=/srv/appof
+Environment=HOME=/var/www
+EnvironmentFile=/srv/appof/.env
+ExecStart=/usr/bin/pnpm --filter @news/api start
 Restart=always
 RestartSec=10
 

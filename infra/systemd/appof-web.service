@@ -6,9 +6,11 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/srv/appof/apps/web
+WorkingDirectory=/srv/appof
+Environment=HOME=/var/www
 Environment=NODE_ENV=production
-ExecStart=/usr/bin/pnpm start
+EnvironmentFile=/srv/appof/.env
+ExecStart=/usr/bin/pnpm --filter @news/web start
 Restart=always
 RestartSec=10
 
