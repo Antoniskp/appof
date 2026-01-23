@@ -45,8 +45,8 @@ Explanation:
 ---
 
 ## 2. System update
-# If your VPS image includes Virtuozzo/OpenVZ repo, it can throw harmless 404s for Translation-en.
-# Disable it for this project setup:
+If your VPS image includes Virtuozzo/OpenVZ repo, it can throw harmless 404s for Translation-en.
+Disable it for this project setup:
 
 grep -RIn --line-number "repo\.virtuozzo\.com/ctpreset" /etc/apt/sources.list /etc/apt/sources.list.d || true
 sudo sh -c 'grep -RIl "repo\.virtuozzo\.com/ctpreset" /etc/apt/sources.list /etc/apt/sources.list.d | while read -r f; do mv "$f" "$f.disabled"; done' || true
@@ -349,3 +349,15 @@ Expected: 200 OK and Next.js response (not Apache).
 
 http://185.92.192.81
 You should see “Appof Web – it works”.
+
+
+------------------------------------------
+Not sure if still needed
+Recommended: keep it running after SSH disconnect
+Right now if you close SSH, it stops. Use a process manager like pm2:
+
+sudo npm install -g pm2
+cd /srv/appof/apps/web
+pm2 start "pnpm start" --name appof-web
+pm2 save
+pm2 startup
