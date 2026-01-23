@@ -1,38 +1,38 @@
 const stats = [
-  { label: 'Daily readers', value: '120K+' },
-  { label: 'Verified sources', value: '250' },
-  { label: 'Active polls', value: '40+' },
+  { label: 'Καθημερινοί αναγνώστες', value: '120K+' },
+  { label: 'Επαληθευμένες πηγές', value: '250' },
+  { label: 'Ενεργές δημοσκοπήσεις', value: '40+' },
 ];
 
 const latestStories = [
   {
-    title: 'City council approves new climate initiatives',
+    title: 'Το δημοτικό συμβούλιο εγκρίνει νέες δράσεις για το κλίμα',
     description:
-      'A sweeping plan targets cleaner transit and neighborhood-level green projects.',
-    tag: 'Civic',
+      'Ένα εκτεταμένο σχέδιο στοχεύει σε καθαρότερες μετακινήσεις και πράσινα έργα στις γειτονιές.',
+    tag: 'Κοινωνία',
   },
   {
-    title: 'Tech firms rally around open AI standards',
+    title: 'Εταιρείες τεχνολογίας συσπειρώνονται γύρω από ανοιχτά πρότυπα ΤΝ',
     description:
-      'Industry leaders commit to transparent governance and responsible rollout timelines.',
-    tag: 'Technology',
+      'Οι ηγέτες του κλάδου δεσμεύονται για διαφανή διακυβέρνηση και υπεύθυνα χρονοδιαγράμματα υλοποίησης.',
+    tag: 'Τεχνολογία',
   },
   {
-    title: 'Local markets see record weekend turnout',
+    title: 'Οι τοπικές αγορές σημειώνουν ρεκόρ επισκεψιμότητας το Σαββατοκύριακο',
     description:
-      'Community vendors credit new digital discovery tools for the surge in visitors.',
-    tag: 'Business',
+      'Οι πωλητές αποδίδουν την αύξηση των επισκεπτών σε νέα ψηφιακά εργαλεία αναζήτησης.',
+    tag: 'Οικονομία',
   },
 ];
 
 const polls = [
   {
-    question: 'Which topic should lead tonight’s newsletter?',
-    options: ['Economy', 'Health', 'Education'],
+    question: 'Ποιο θέμα πρέπει να ανοίγει το αποψινό ενημερωτικό;',
+    options: ['Οικονομία', 'Υγεία', 'Εκπαίδευση'],
   },
   {
-    question: 'How often do you vote in community polls?',
-    options: ['Daily', 'Weekly', 'Monthly'],
+    question: 'Πόσο συχνά ψηφίζετε σε δημοσκοπήσεις της κοινότητας;',
+    options: ['Καθημερινά', 'Εβδομαδιαία', 'Μηνιαία'],
   },
 ];
 
@@ -44,19 +44,21 @@ export default function HomePage() {
           <div className="row align-items-center g-5">
             <div className="col-lg-6">
               <p className="text-uppercase text-primary fw-semibold mb-2">
-                Appof News & Polls
+                Appof Ειδήσεις & Δημοσκοπήσεις
               </p>
               <h1 className="display-4 fw-bold">
-                Your daily briefing, powered by community insight.
+                Η καθημερινή σας ενημέρωση, με δύναμη από την κοινότητα.
               </h1>
               <p className="lead text-secondary">
-                Discover trustworthy headlines, explore context-rich reporting, and
-                cast votes on the issues shaping your neighborhood.
+                Ανακαλύψτε αξιόπιστους τίτλους, εξερευνήστε ρεπορτάζ με πλαίσιο και
+                ψηφίστε για τα ζητήματα που διαμορφώνουν τη γειτονιά σας.
               </p>
               <div className="d-flex flex-wrap gap-3 mt-4">
-                <button className="btn btn-primary btn-lg">Explore headlines</button>
+                <button className="btn btn-primary btn-lg">
+                  Εξερεύνηση τίτλων
+                </button>
                 <button className="btn btn-outline-primary btn-lg">
-                  Start a poll
+                  Ξεκινήστε δημοσκόπηση
                 </button>
               </div>
               <div className="row text-center mt-5">
@@ -72,9 +74,9 @@ export default function HomePage() {
               <div className="card shadow-lg border-0">
                 <div className="card-body p-4">
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h2 className="h4 mb-0">Trending now</h2>
+                    <h2 className="h4 mb-0">Τώρα στις τάσεις</h2>
                     <span className="badge bg-primary-subtle text-primary">
-                      Live updates
+                      Ζωντανές ενημερώσεις
                     </span>
                   </div>
                   <div className="list-group list-group-flush">
@@ -104,9 +106,9 @@ export default function HomePage() {
         <div className="row g-4">
           <div className="col-lg-7">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h2 className="h3 mb-0">Latest coverage</h2>
+              <h2 className="h3 mb-0">Τελευταία κάλυψη</h2>
               <button className="btn btn-link text-decoration-none">
-                View all news
+                Όλες οι ειδήσεις
               </button>
             </div>
             <div className="row g-3">
@@ -120,7 +122,7 @@ export default function HomePage() {
                       <h3 className="h5 mt-3">{story.title}</h3>
                       <p className="text-muted">{story.description}</p>
                       <button className="btn btn-sm btn-outline-primary">
-                        Read story
+                        Διαβάστε το άρθρο
                       </button>
                     </div>
                   </div>
@@ -131,10 +133,10 @@ export default function HomePage() {
           <div className="col-lg-5">
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <h2 className="h4">Live community polls</h2>
+                <h2 className="h4">Ζωντανές δημοσκοπήσεις κοινότητας</h2>
                 <p className="text-muted">
-                  Shape tomorrow’s coverage by sharing how you feel about trending
-                  topics.
+                  Διαμορφώστε την αυριανή κάλυψη μοιράζοντας τη γνώμη σας για τα
+                  θέματα που βρίσκονται στις τάσεις.
                 </p>
                 <div className="d-grid gap-3">
                   {polls.map((poll) => (
@@ -154,7 +156,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <button className="btn btn-primary w-100 mt-4">
-                  Vote in polls
+                  Ψηφίστε στις δημοσκοπήσεις
                 </button>
               </div>
             </div>
@@ -166,9 +168,12 @@ export default function HomePage() {
         <div className="container py-5">
           <div className="row align-items-center g-4">
             <div className="col-lg-8">
-              <h2 className="h3">Stay ahead with the Appof newsletter</h2>
+              <h2 className="h3">
+                Μείνετε ένα βήμα μπροστά με το newsletter του Appof
+              </h2>
               <p className="text-white-50 mb-0">
-                Get curated headlines and poll results delivered every morning.
+                Λάβετε επιλεγμένους τίτλους και αποτελέσματα δημοσκοπήσεων κάθε
+                πρωί.
               </p>
             </div>
             <div className="col-lg-4">
@@ -177,9 +182,11 @@ export default function HomePage() {
                   type="email"
                   className="form-control form-control-lg"
                   placeholder="you@example.com"
-                  aria-label="Email address"
+                  aria-label="Διεύθυνση email"
                 />
-                <button className="btn btn-primary btn-lg">Subscribe</button>
+                <button className="btn btn-primary btn-lg">
+                  Εγγραφείτε
+                </button>
               </form>
             </div>
           </div>

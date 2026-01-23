@@ -24,17 +24,17 @@ export default function TopNav() {
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <a className="nav-link active" aria-current="page" href="#">
-                News
+                Ειδήσεις
               </a>
             </li>
             <li className="nav-item">
               <a className="nav-link" href="#">
-                Polls
+                Δημοσκοπήσεις
               </a>
             </li>
             <li className="nav-item">
               <a className="nav-link" href="#">
-                Educational Articles
+                Εκπαιδευτικά άρθρα
               </a>
             </li>
           </ul>
@@ -47,17 +47,17 @@ export default function TopNav() {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                User Menu
+                Μενού χρήστη
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
                 <li>
                   <a className="dropdown-item" href="#">
-                    Profile
+                    Προφίλ
                   </a>
                 </li>
                 <li>
                   <a className="dropdown-item" href="#">
-                    Settings
+                    Ρυθμίσεις
                   </a>
                 </li>
                 <li>
@@ -65,7 +65,7 @@ export default function TopNav() {
                 </li>
                 <li>
                   <a className="dropdown-item" href="#">
-                    Sign out
+                    Αποσύνδεση
                   </a>
                 </li>
               </ul>
