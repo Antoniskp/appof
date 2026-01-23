@@ -1,0 +1,165 @@
+name: Copilot Setup Steps
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9.0.0'
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-22.04
+    
+    # Target apps environment
+    environment: apps
+    
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: news_user
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD || 'change_me' }}
+          POSTGRES_DB: news_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      # Step 1: Checkout repository (mirrors step 8: Clone the repository)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Step 2: System update (mirrors step 2: System update)
+      - name: System update
+        run: |
+          sudo apt update
+          sudo apt upgrade -y
+      
+      # Step 3: Install base dependencies (mirrors step 3: Install base system dependencies)
+      - name: Install base system dependencies
+        run: |
+          sudo apt install -y curl git build-essential ca-certificates
+      
+      # Step 4: Install Node.js LTS (mirrors step 4: Install Node.js)
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      # Verify Node.js installation
+      - name: Verify Node.js installation
+        run: |
+          node -v
+          npm -v
+      
+      # Step 5: Install pnpm (mirrors step 5: Install pnpm)
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@${{ env.PNPM_VERSION }}
+      
+      # Verify pnpm installation
+      - name: Verify pnpm installation
+        run: |
+          pnpm -v
+      
+      # Step 6: Environment configuration (mirrors step 9: Environment configuration)
+      - name: Setup environment files
+        run: |
+          cp .env.example .env
+          cp apps/api/.env.example apps/api/.env
+        env:
+          DATABASE_URL: postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db
+          API_PORT: 4000
+          WEB_PORT: 3000
+          NODE_ENV: production
+      
+      # Update .env files with actual values
+      - name: Configure environment variables
+        run: |
+          echo "DATABASE_URL=postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db" > .env
+          echo "API_PORT=4000" >> .env
+          echo "WEB_PORT=3000" >> .env
+          echo "NODE_ENV=production" >> .env
+          
+          echo "DATABASE_URL=postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db" > apps/api/.env
+          echo "API_PORT=4000" >> apps/api/.env
+          echo "WEB_PORT=3000" >> apps/api/.env
+          echo "NODE_ENV=production" >> apps/api/.env
+      
+      # Step 7: Install dependencies (mirrors step 10: Install dependencies)
+      - name: Install dependencies
+        run: |
+          pnpm install
+      
+      # Step 8: Database migrations (mirrors step 11: Database migrations)
+      - name: Run database migrations
+        run: |
+          cd apps/api
+          pnpm prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db
+      
+      # Step 9: Build applications (mirrors step 12: Build applications)
+      - name: Build applications
+        run: |
+          make build
+      
+      # Step 10: Run linting
+      - name: Lint code
+        run: |
+          make lint
+      
+      # Step 11: Run type checking
+      - name: Type check
+        run: |
+          make typecheck
+      
+      # Step 12: Run tests
+      - name: Run tests
+        run: |
+          make test
+      
+      # Step 13: Health check verification (mirrors step 13: Run in production)
+      - name: Start API and verify health endpoint
+        run: |
+          cd apps/api
+          pnpm start &
+          API_PID=$!
+          
+          # Wait for API to start
+          sleep 10
+          
+          # Test health endpoint
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/health)
+          if [ "$response" = "200" ]; then
+            echo "✅ Health endpoint returned 200 OK"
+          else
+            echo "❌ Health endpoint returned $response"
+            kill $API_PID
+            exit 1
+          fi
+          
+          # Cleanup
+          kill $API_PID
+        env:
+          DATABASE_URL: postgresql://news_user:${{ secrets.DB_PASSWORD || 'change_me' }}@localhost:5432/news_db
+          API_PORT: 4000
+          NODE_ENV: production
+      
+      # Step 14: Verification checklist (mirrors step 14: Verification checklist)
+      - name: Run environment diagnostics
+        run: |
+          make doctor
