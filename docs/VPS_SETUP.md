@@ -171,7 +171,7 @@ pnpm prisma migrate deploy
 
 ## 12. Build applications
 
-make build
+cd /srv/appof && make build
 
 Expected:
 - apps/api builds successfully
