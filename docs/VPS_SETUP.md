@@ -218,15 +218,58 @@ Stop web server with Ctrl+C.
 - postgres is running
 - pnpm install succeeds
 - make build succeeds
-- /health endpoint responds with 200
+- /health endpoint responds with 200 (test manually or via systemd services)
 - web homepage accessible on port 3000
+
+Note: After setting up systemd services (section 15), you no longer need to run services manually. The systemd services will handle starting and restarting automatically.
 
 ---
 
-## 15. Next steps (not yet implemented)
+## 15. Set up systemd services
 
-- systemd services
-- reverse proxy (nginx)
+The repository includes systemd unit files for both the API and web services. These files ensure the services start automatically on boot and restart on failure.
+
+### Copy systemd unit files:
+
+sudo cp /srv/appof/infra/systemd/appof-api.service /etc/systemd/system/
+sudo cp /srv/appof/infra/systemd/appof-web.service /etc/systemd/system/
+
+### Reload systemd daemon to recognize new services:
+
+sudo systemctl daemon-reload
+
+### Enable services to start on boot:
+
+sudo systemctl enable appof-api.service
+sudo systemctl enable appof-web.service
+
+### Start the services:
+
+sudo systemctl start appof-api.service
+sudo systemctl start appof-web.service
+
+### Verify services are running:
+
+sudo systemctl status appof-api.service --no-pager
+sudo systemctl status appof-web.service --no-pager
+
+Expected output: Both services should show "active (running)" status.
+
+### Check logs if needed:
+
+sudo journalctl -u appof-api.service -n 50 --no-pager
+sudo journalctl -u appof-web.service -n 50 --no-pager
+
+### Restart services after code changes:
+
+sudo systemctl restart appof-api.service
+sudo systemctl restart appof-web.service
+
+---
+
+## 16. Next steps (not yet implemented)
+
+- reverse proxy (nginx) - see instructions below
 - TLS
 - firewall hardening
 
@@ -238,7 +281,7 @@ Assumptions
 Repo is at /srv/appof
 You’re on the default branch (likely main)
 You already have .env and apps/api/.env set
-You want to pull latest code, apply DB migrations, rebuild, and restart services (foreground or your own process manager)
+You want to pull latest code, apply DB migrations, rebuild, and restart services
 
 cd /srv/appof && \
 git fetch --all && \
@@ -247,7 +290,9 @@ pnpm install && \
 cd /srv/appof/apps/api && \
 pnpm prisma migrate deploy && \
 cd /srv/appof && \
-make build
+make build && \
+sudo systemctl restart appof-api.service && \
+sudo systemctl restart appof-web.service
 
 
 To make the app available on ip of server assuming for this project http://185.92.192.81
