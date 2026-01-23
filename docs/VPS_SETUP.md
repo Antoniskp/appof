@@ -249,3 +249,58 @@ pnpm prisma migrate deploy && \
 cd /srv/appof && \
 make build
 
+
+To make the app available on ip of server assuming for this project http://185.92.192.81
+
+✅Step 1: Stop/disable Apache
+
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+
+✅Step 2: Install Nginx
+
+sudo apt update
+sudo apt install -y nginx
+
+✅Step 3: Ensure your Next.js app is running on 3000
+
+cd /srv/appof/apps/web
+pnpm start
+
+In another SSH session:
+curl -I http://localhost:3000
+
+✅Step 4: Configure Nginx reverse proxy
+
+sudo tee /etc/nginx/sites-available/appof >/dev/null <<'EOF'
+server {
+    listen 80;
+    server_name 185.92.192.81;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
+
+✅Step 5: Enable the site
+
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -s /etc/nginx/sites-available/appof /etc/nginx/sites-enabled/appof
+sudo nginx -t
+sudo systemctl restart nginx
+
+✅ Step 6: Test from server
+
+curl -I http://localhost
+Expected: 200 OK and Next.js response (not Apache).
+
+✅ Step 7: Test from browser
+
+http://185.92.192.81
+You should see “Appof Web – it works”.
