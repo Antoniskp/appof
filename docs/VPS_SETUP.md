@@ -182,7 +182,8 @@ Expected:
 ## 13. Run in production (temporary foreground test)
 
 API:
-cd apps/api
+
+cd /srv/appof/apps/api
 pnpm start
 
 In another shell:
@@ -195,7 +196,7 @@ HTTP 200
 Stop API with Ctrl+C.
 
 Web:
-cd apps/web
+cd /srv/appof/apps/web
 pnpm start
 
 The Next.js app will start on port 3000.
