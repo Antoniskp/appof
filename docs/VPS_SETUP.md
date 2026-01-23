@@ -202,7 +202,7 @@ The Next.js app will start on port 3000.
 
 Access the homepage:
 - Locally: http://localhost:3000
-- On VPS: http://185.92.192.81:3000 (ensure port 3000 is open in firewall)
+- On VPS: http://YOUR_SERVER_IP:3000 (replace YOUR_SERVER_IP with your actual server IP; ensure port 3000 is open in firewall)
 
 Expected:
 Homepage displays "Appof Web – it works"
@@ -218,10 +218,10 @@ Stop web server with Ctrl+C.
 - postgres is running
 - pnpm install succeeds
 - make build succeeds
-- /health endpoint responds with 200 (test manually or via systemd services)
-- web homepage accessible on port 3000
+- /health endpoint responds with 200 (test manually in foreground mode)
+- web homepage accessible on port 3000 (test manually in foreground mode)
 
-Note: After setting up systemd services (section 15), you no longer need to run services manually. The systemd services will handle starting and restarting automatically.
+Note: The manual tests above are for initial verification. After setting up systemd services (section 15), the services will handle starting and restarting automatically.
 
 ---
 
@@ -229,10 +229,26 @@ Note: After setting up systemd services (section 15), you no longer need to run 
 
 The repository includes systemd unit files for both the API and web services. These files ensure the services start automatically on boot and restart on failure.
 
+### Service Configuration Details
+
+The systemd service files are configured with:
+- **WorkingDirectory**: `/srv/appof` (repository root for pnpm workspace)
+- **EnvironmentFile**: `/srv/appof/.env` (shared environment variables)
+- **User/Group**: `www-data` (standard web service user)
+- **HOME**: `/var/www` (pnpm requires a valid HOME directory; www-data's default home is /var/www)
+- **NODE_ENV**: `production` (ensures both services run in production mode)
+- **ExecStart**: Uses `pnpm --filter @news/api` and `pnpm --filter @news/web` to run workspace-specific commands
+
 ### Copy systemd unit files:
 
 sudo cp /srv/appof/infra/systemd/appof-api.service /etc/systemd/system/
 sudo cp /srv/appof/infra/systemd/appof-web.service /etc/systemd/system/
+
+### Ensure proper ownership:
+
+The www-data user needs read access to the repository:
+
+sudo chown -R www-data:www-data /srv/appof
 
 ### Reload systemd daemon to recognize new services:
 
@@ -255,33 +271,106 @@ sudo systemctl status appof-web.service --no-pager
 
 Expected output: Both services should show "active (running)" status.
 
-### Check logs if needed:
+---
 
-sudo journalctl -u appof-api.service -n 50 --no-pager
-sudo journalctl -u appof-web.service -n 50 --no-pager
+## 16. Service Management Commands
 
-### Restart services after code changes:
+### Check service status:
+
+sudo systemctl status appof-api.service --no-pager
+sudo systemctl status appof-web.service --no-pager
+
+### Start services:
+
+sudo systemctl start appof-api.service
+sudo systemctl start appof-web.service
+
+### Stop services:
+
+sudo systemctl stop appof-api.service
+sudo systemctl stop appof-web.service
+
+### Restart services (e.g., after code changes):
 
 sudo systemctl restart appof-api.service
 sudo systemctl restart appof-web.service
 
+### View recent logs (last 50 lines):
+
+sudo journalctl -u appof-api.service -n 50 --no-pager
+sudo journalctl -u appof-web.service -n 50 --no-pager
+
+### Follow logs in real-time:
+
+sudo journalctl -u appof-api.service -f
+sudo journalctl -u appof-web.service -f
+
+### View logs since last boot:
+
+sudo journalctl -u appof-api.service -b --no-pager
+sudo journalctl -u appof-web.service -b --no-pager
+
 ---
 
-## 16. Next steps (not yet implemented)
+## 17. Health Check and Verification
 
-- reverse proxy (nginx) - see instructions below
-- TLS
-- firewall hardening
+### Verify API health endpoint:
 
-====================================================================================================================
-Below is a safe, repeatable update/deploy flow you can run on the VPS (adapt branch if you use something else). This follows your VPS_SETUP.md conventions (pnpm, Prisma, make build).
+The API service exposes a `/health` endpoint on port 4000 (configurable via API_PORT in .env).
 
-Assumptions
+Test the health endpoint:
 
-Repo is at /srv/appof
-You’re on the default branch (likely main)
-You already have .env and apps/api/.env set
-You want to pull latest code, apply DB migrations, rebuild, and restart services
+curl http://localhost:4000/health
+
+Expected response:
+{"status":"ok"}
+
+With full HTTP response:
+
+curl -i http://localhost:4000/health
+
+Expected:
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"status":"ok"}
+
+### Verify web service:
+
+The web service runs on port 3000 (configurable via WEB_PORT in .env).
+
+Test locally:
+
+curl http://localhost:3000
+
+Or open in browser (replace YOUR_SERVER_IP with your actual server IP):
+
+http://YOUR_SERVER_IP:3000
+
+Expected: Homepage displays "Appof Web – it works"
+
+### Complete verification checklist:
+
+- [ ] API service is active: `sudo systemctl status appof-api.service --no-pager`
+- [ ] Web service is active: `sudo systemctl status appof-web.service --no-pager`
+- [ ] API health check passes: `curl http://localhost:4000/health`
+- [ ] Web homepage loads: `curl http://localhost:3000`
+- [ ] No errors in API logs: `sudo journalctl -u appof-api.service -n 20 --no-pager`
+- [ ] No errors in web logs: `sudo journalctl -u appof-web.service -n 20 --no-pager`
+
+---
+
+## 18. Deployment Workflow (Update and Restart)
+
+Below is a safe, repeatable update/deploy flow you can run on the VPS. This follows the VPS_SETUP.md conventions (pnpm, Prisma, make build).
+
+### Assumptions:
+- Repository is at /srv/appof
+- You're on the default branch (likely main)
+- You already have .env configured
+- You want to pull latest code, apply DB migrations, rebuild, and restart services
+
+### Update and deploy command:
 
 cd /srv/appof && \
 git fetch --all && \
@@ -292,35 +381,60 @@ pnpm prisma migrate deploy && \
 cd /srv/appof && \
 make build && \
 sudo systemctl restart appof-api.service && \
-sudo systemctl restart appof-web.service
+sudo systemctl restart appof-web.service && \
+echo "Deployment complete - verifying services..." && \
+sleep 2 && \
+sudo systemctl is-active --quiet appof-api.service && \
+sudo systemctl is-active --quiet appof-web.service && \
+echo "✓ Both services are running"
 
+### Verify deployment:
 
-To make the app available on ip of server assuming for this project http://185.92.192.81
+# Check services are running
+sudo systemctl status appof-api.service --no-pager
+sudo systemctl status appof-web.service --no-pager
 
-✅Step 1: Stop/disable Apache
+# Verify API health endpoint
+curl http://localhost:4000/health
+
+# Verify web service is responding
+curl -I http://localhost:3000
+
+# Check recent logs for errors
+sudo journalctl -u appof-api.service -n 20 --no-pager
+sudo journalctl -u appof-web.service -n 20 --no-pager
+
+---
+
+## 19. Nginx Reverse Proxy Setup (Optional)
+
+To make the app available on the server IP (e.g., http://YOUR_SERVER_IP):
+
+### Step 1: Stop/disable Apache (if running)
 
 sudo systemctl stop apache2
 sudo systemctl disable apache2
 
-✅Step 2: Install Nginx
+### Step 2: Install Nginx
 
 sudo apt update
 sudo apt install -y nginx
 
-✅Step 3: Ensure your Next.js app is running on 3000
+### Step 3: Ensure services are running
 
-cd /srv/appof/apps/web
-pnpm start
+The systemd services should already be running from section 15. Verify:
 
-In another SSH session:
+sudo systemctl status appof-web.service --no-pager
 curl -I http://localhost:3000
 
-✅Step 4: Configure Nginx reverse proxy
+### Step 4: Configure Nginx reverse proxy
+
+Replace YOUR_SERVER_IP with your actual server IP address:
 
 sudo tee /etc/nginx/sites-available/appof >/dev/null <<'EOF'
 server {
     listen 80;
-    server_name 185.92.192.81;
+    server_name YOUR_SERVER_IP;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -333,19 +447,30 @@ server {
 }
 EOF
 
-✅Step 5: Enable the site
+### Step 5: Enable the site
 
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo ln -s /etc/nginx/sites-available/appof /etc/nginx/sites-enabled/appof
 sudo nginx -t
 sudo systemctl restart nginx
 
-✅ Step 6: Test from server
+### Step 6: Test from server
 
 curl -I http://localhost
+
 Expected: 200 OK and Next.js response (not Apache).
 
-✅ Step 7: Test from browser
+### Step 7: Test from browser
 
-http://185.92.192.81
-You should see “Appof Web – it works”.
+http://YOUR_SERVER_IP
+
+You should see "Appof Web – it works".
+
+---
+
+## 20. Next Steps (Future Enhancements)
+
+- TLS/SSL certificate setup (Let's Encrypt)
+- Firewall hardening (ufw/iptables)
+- Monitoring and alerting
+- Automated backups

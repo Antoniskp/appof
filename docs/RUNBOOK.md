@@ -14,3 +14,38 @@ If a command fails:
 4) Apply the smallest fix.
 5) Re-run only the failing command.
 After 3 failed attempts: stop coding and write a Debug Report.
+
+## Service Management (Production)
+
+For production deployments on VPS, services are managed via systemd. See docs/VPS_SETUP.md for full setup instructions.
+
+### Quick Reference - Service Commands:
+
+Check status:
+```bash
+sudo systemctl status appof-api.service --no-pager
+sudo systemctl status appof-web.service --no-pager
+```
+
+Start/stop/restart:
+```bash
+sudo systemctl start appof-api.service
+sudo systemctl stop appof-api.service
+sudo systemctl restart appof-api.service
+```
+
+View logs:
+```bash
+sudo journalctl -u appof-api.service -n 50 --no-pager
+sudo journalctl -u appof-web.service -f  # follow in real-time
+```
+
+### Health Check:
+
+Verify API is responding:
+```bash
+curl http://localhost:4000/health
+```
+
+Expected response: `{"status":"ok"}`
+
