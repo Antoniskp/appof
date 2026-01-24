@@ -239,7 +239,7 @@ app.get("/me", async (request, reply) => {
     name: user.name,
     role: user.role,
     createdAt: user.createdAt,
-    providers: user.oauthAccounts.map((account) => account.provider),
+    providers: user.oauthAccounts.map((account: { provider: string }) => account.provider),
   });
 });
 
