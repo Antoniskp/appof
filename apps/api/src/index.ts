@@ -5,7 +5,7 @@ import cookie from "@fastify/cookie";
 import oauth2 from "@fastify/oauth2";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
-import { PrismaClient, type OAuthAccount } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const app = Fastify({ logger: true });
 const prisma = new PrismaClient();
@@ -237,7 +237,7 @@ app.get("/me", async (request, reply) => {
     name: user.name,
     role: user.role,
     createdAt: user.createdAt,
-    providers: user.oauthAccounts.map((account: OAuthAccount) => account.provider),
+    providers: user.oauthAccounts.map((account) => account.provider),
   });
 });
 
