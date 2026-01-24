@@ -5,7 +5,7 @@ import cookie from "@fastify/cookie";
 import oauth2 from "@fastify/oauth2";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 const app = Fastify({ logger: true });
 const prisma = new PrismaClient();
@@ -223,7 +223,9 @@ app.get("/me", async (request, reply) => {
     return reply.status(401).send({ error: "Μη έγκυρο token." });
   }
 
-  const user = await prisma.user.findUnique({
+  const user: Prisma.UserGetPayload<{
+    include: { oauthAccounts: true };
+  }> | null = await prisma.user.findUnique({
     where: { id: userToken.id },
     include: { oauthAccounts: true },
   });
