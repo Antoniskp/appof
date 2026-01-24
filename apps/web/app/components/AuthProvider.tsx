@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -23,11 +31,14 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const REFRESH_MIN_INTERVAL_MS = 30_000;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const refreshInFlightRef = useRef<Promise<void> | null>(null);
+  const lastRefreshAtRef = useRef(0);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -86,26 +97,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(data.user ?? null);
   }, [persistToken]);
 
-  const refresh = useCallback(async () => {
-    const response = await fetch(`${API_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
+  const refresh = useCallback(
+    async (options?: { force?: boolean }) => {
+      const now = Date.now();
+      const withinInterval = now - lastRefreshAtRef.current < REFRESH_MIN_INTERVAL_MS;
+      if (!options?.force && (refreshInFlightRef.current || withinInterval)) {
+        return refreshInFlightRef.current ?? Promise.resolve();
+      }
 
-    if (!response.ok) {
-      persistToken(null);
-      setUser(null);
-      return;
-    }
+      const refreshPromise = (async () => {
+        try {
+          const response = await fetch(`${API_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+          });
 
-    const data = await response.json();
-    persistToken(data.accessToken);
-    setUser(data.user ?? null);
-  }, [persistToken]);
+          if (!response.ok) {
+            persistToken(null);
+            setUser(null);
+            return;
+          }
+
+          const data = await response.json();
+          persistToken(data.accessToken);
+          setUser(data.user ?? null);
+          lastRefreshAtRef.current = Date.now();
+        } catch {
+          // Network failures should not clear an existing session in memory.
+        } finally {
+          refreshInFlightRef.current = null;
+        }
+      })();
+
+      refreshInFlightRef.current = refreshPromise;
+      return refreshPromise;
+    },
+    [persistToken]
+  );
 
   useEffect(() => {
     const bootstrap = async () => {
-      await refresh();
+      await refresh({ force: true });
       setLoading(false);
     };
     bootstrap();
