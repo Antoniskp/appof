@@ -1,4 +1,10 @@
+'use client';
+
+import { useAuth } from './AuthProvider';
+
 export default function TopNav() {
+  const { user, logout } = useAuth();
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
       <div className="container">
@@ -39,37 +45,49 @@ export default function TopNav() {
             </li>
           </ul>
           <ul className="navbar-nav ms-lg-auto">
-            <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Μενού χρήστη
-              </a>
-              <ul className="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Προφίλ
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Ρυθμίσεις
-                  </a>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Αποσύνδεση
-                  </a>
-                </li>
-              </ul>
-            </li>
+            {user ? (
+              <li className="nav-item dropdown">
+                <a
+                  className="nav-link dropdown-toggle"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {user.name ?? user.email}
+                </a>
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a className="dropdown-item" href="/profile">
+                      Προφίλ
+                    </a>
+                  </li>
+                  <li>
+                    <a className="dropdown-item" href="#">
+                      Ρυθμίσεις
+                    </a>
+                  </li>
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      type="button"
+                      onClick={() => logout()}
+                    >
+                      Αποσύνδεση
+                    </button>
+                  </li>
+                </ul>
+              </li>
+            ) : (
+              <li className="nav-item">
+                <a className="nav-link" href="/auth">
+                  Σύνδεση / Εγγραφή
+                </a>
+              </li>
+            )}
           </ul>
         </div>
       </div>
