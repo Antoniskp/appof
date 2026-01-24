@@ -1,11 +1,15 @@
 import crypto from "node:crypto";
-import Fastify from "fastify";
+import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
-import oauth2 from "@fastify/oauth2";
+import oauth2, {
+  FACEBOOK_CONFIGURATION,
+  GITHUB_CONFIGURATION,
+  GOOGLE_CONFIGURATION,
+} from "@fastify/oauth2";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type OAuthAccount } from "@prisma/client";
 
 const app = Fastify({ logger: true });
 const prisma = new PrismaClient();
@@ -63,7 +67,11 @@ async function issueRefreshSession(userId: string) {
   return { token, expiresAt };
 }
 
-function setRefreshCookie(reply: typeof app.reply, token: string, expiresAt: Date) {
+function setRefreshCookie(
+  reply: FastifyReply,
+  token: string,
+  expiresAt: Date
+) {
   reply.setCookie(refreshCookieName, token, {
     httpOnly: true,
     secure: isSecureCookie,
@@ -233,7 +241,7 @@ app.get("/me", async (request, reply) => {
     name: user.name,
     role: user.role,
     createdAt: user.createdAt,
-    providers: user.oauthAccounts.map((account) => account.provider),
+    providers: user.oauthAccounts.map((account: OAuthAccount) => account.provider),
   });
 });
 
@@ -253,7 +261,7 @@ if (googleClientId && googleClientSecret) {
         id: googleClientId,
         secret: googleClientSecret,
       },
-      auth: oauth2.GOOGLE_CONFIGURATION,
+      auth: GOOGLE_CONFIGURATION,
     },
     startRedirectPath: "/auth/oauth/google",
     callbackUri: `${apiBaseUrl}/auth/oauth/google/callback`,
@@ -271,7 +279,7 @@ if (githubClientId && githubClientSecret) {
         id: githubClientId,
         secret: githubClientSecret,
       },
-      auth: oauth2.GITHUB_CONFIGURATION,
+      auth: GITHUB_CONFIGURATION,
     },
     startRedirectPath: "/auth/oauth/github",
     callbackUri: `${apiBaseUrl}/auth/oauth/github/callback`,
@@ -289,7 +297,7 @@ if (facebookClientId && facebookClientSecret) {
         id: facebookClientId,
         secret: facebookClientSecret,
       },
-      auth: oauth2.FACEBOOK_CONFIGURATION,
+      auth: FACEBOOK_CONFIGURATION,
     },
     startRedirectPath: "/auth/oauth/facebook",
     callbackUri: `${apiBaseUrl}/auth/oauth/facebook/callback`,
@@ -300,8 +308,8 @@ if (facebookClientId && facebookClientSecret) {
 
 async function handleOAuth(
   provider: "google" | "github" | "facebook",
-  request: typeof app.request,
-  reply: typeof app.reply
+  request: FastifyRequest,
+  reply: FastifyReply
 ) {
   let oauthClient;
   if (provider === "google") oauthClient = app.googleOAuth2;
