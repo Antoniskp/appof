@@ -2,11 +2,7 @@ import crypto from "node:crypto";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
-import oauth2, {
-  FACEBOOK_CONFIGURATION,
-  GITHUB_CONFIGURATION,
-  GOOGLE_CONFIGURATION,
-} from "@fastify/oauth2";
+import oauth2 from "@fastify/oauth2";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
 import { PrismaClient, type OAuthAccount } from "@prisma/client";
@@ -261,7 +257,12 @@ if (googleClientId && googleClientSecret) {
         id: googleClientId,
         secret: googleClientSecret,
       },
-      auth: GOOGLE_CONFIGURATION,
+      auth: {
+        authorizeHost: "https://accounts.google.com",
+        authorizePath: "/o/oauth2/v2/auth",
+        tokenHost: "https://oauth2.googleapis.com",
+        tokenPath: "/token",
+      },
     },
     startRedirectPath: "/auth/oauth/google",
     callbackUri: `${apiBaseUrl}/auth/oauth/google/callback`,
@@ -279,7 +280,12 @@ if (githubClientId && githubClientSecret) {
         id: githubClientId,
         secret: githubClientSecret,
       },
-      auth: GITHUB_CONFIGURATION,
+      auth: {
+        authorizeHost: "https://github.com",
+        authorizePath: "/login/oauth/authorize",
+        tokenHost: "https://github.com",
+        tokenPath: "/login/oauth/access_token",
+      },
     },
     startRedirectPath: "/auth/oauth/github",
     callbackUri: `${apiBaseUrl}/auth/oauth/github/callback`,
@@ -297,7 +303,12 @@ if (facebookClientId && facebookClientSecret) {
         id: facebookClientId,
         secret: facebookClientSecret,
       },
-      auth: FACEBOOK_CONFIGURATION,
+      auth: {
+        authorizeHost: "https://www.facebook.com",
+        authorizePath: "/v18.0/dialog/oauth",
+        tokenHost: "https://graph.facebook.com",
+        tokenPath: "/v18.0/oauth/access_token",
+      },
     },
     startRedirectPath: "/auth/oauth/facebook",
     callbackUri: `${apiBaseUrl}/auth/oauth/facebook/callback`,
@@ -387,9 +398,9 @@ async function handleOAuth(
     include: { user: true },
   });
 
-  let user = existingAccount?.user;
+  let user = existingAccount?.user ?? undefined;
   if (!user) {
-    user = await prisma.user.findUnique({ where: { email: profile.email } });
+    user = await prisma.user.findUnique({ where: { email: profile.email } }) ?? undefined;
   }
 
   if (!user) {
