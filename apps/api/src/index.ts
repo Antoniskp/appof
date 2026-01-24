@@ -3,8 +3,10 @@ import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 import oauth2 from "@fastify/oauth2";
+import rateLimit from "@fastify/rate-limit";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
+import { z } from "zod";
 import { PrismaClient, Prisma } from "@prisma/client";
 
 const app = Fastify({ logger: true });
@@ -30,6 +32,13 @@ app.register(cookie, {
   hook: "onRequest",
 });
 
+// Register rate limiting to prevent brute force attacks
+app.register(rateLimit, {
+  max: 100, // Maximum 100 requests
+  timeWindow: "15 minutes", // Per 15 minutes
+  cache: 10000,
+});
+
 function createAccessToken(user: { id: string; email: string; role: string }) {
   return jwt.sign(
     { sub: user.id, email: user.email, role: user.role },
@@ -45,6 +54,27 @@ function createRefreshToken() {
 function hashToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
+
+// Validation schemas
+const emailSchema = z.string().email().trim().toLowerCase();
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character");
+
+const registerSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  name: z.string().trim().min(1).optional(),
+});
+
+const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1),
+});
 
 async function issueRefreshSession(userId: string) {
   const token = createRefreshToken();
@@ -105,70 +135,96 @@ app.get("/health", async () => {
   return { status: "ok" };
 });
 
-app.post("/auth/register", async (request, reply) => {
-  const body = request.body as { email: string; password: string; name?: string };
-  const email = body.email?.trim().toLowerCase();
-  if (!email || !body.password) {
-    return reply.status(400).send({ error: "Email και κωδικός απαιτούνται." });
+app.post("/auth/register", {
+  config: {
+    rateLimit: {
+      max: 5,
+      timeWindow: "15 minutes"
+    }
   }
+}, async (request, reply) => {
+  try {
+    const body = registerSchema.parse(request.body);
+    
+    const existing = await prisma.user.findUnique({ where: { email: body.email } });
+    if (existing) {
+      return reply.status(409).send({ error: "Το email χρησιμοποιείται ήδη." });
+    }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return reply.status(409).send({ error: "Το email χρησιμοποιείται ήδη." });
+    const passwordHash = await argon2.hash(body.password);
+    const user = await prisma.user.create({
+      data: {
+        email: body.email,
+        name: body.name || null,
+        passwordHash,
+      },
+    });
+
+    const accessToken = createAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    const session = await issueRefreshSession(user.id);
+    setRefreshCookie(reply, session.token, session.expiresAt);
+
+    return reply.send({
+      accessToken,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.status(400).send({ 
+        error: "Μη έγκυρα δεδομένα εισόδου.",
+        details: error.issues.map((e) => ({ field: e.path.join('.'), message: e.message }))
+      });
+    }
+    throw error;
   }
-
-  const passwordHash = await argon2.hash(body.password);
-  const user = await prisma.user.create({
-    data: {
-      email,
-      name: body.name?.trim() || null,
-      passwordHash,
-    },
-  });
-
-  const accessToken = createAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-  const session = await issueRefreshSession(user.id);
-  setRefreshCookie(reply, session.token, session.expiresAt);
-
-  return reply.send({
-    accessToken,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-  });
 });
 
-app.post("/auth/login", async (request, reply) => {
-  const body = request.body as { email: string; password: string };
-  const email = body.email?.trim().toLowerCase();
-  if (!email || !body.password) {
-    return reply.status(400).send({ error: "Email και κωδικός απαιτούνται." });
+app.post("/auth/login", {
+  config: {
+    rateLimit: {
+      max: 10,
+      timeWindow: "15 minutes"
+    }
   }
+}, async (request, reply) => {
+  try {
+    const body = loginSchema.parse(request.body);
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.passwordHash) {
-    return reply.status(401).send({ error: "Λάθος στοιχεία εισόδου." });
+    const user = await prisma.user.findUnique({ where: { email: body.email } });
+    if (!user || !user.passwordHash) {
+      return reply.status(401).send({ error: "Λάθος στοιχεία εισόδου." });
+    }
+
+    const valid = await argon2.verify(user.passwordHash, body.password);
+    if (!valid) {
+      return reply.status(401).send({ error: "Λάθος στοιχεία εισόδου." });
+    }
+
+    const accessToken = createAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    const session = await issueRefreshSession(user.id);
+    setRefreshCookie(reply, session.token, session.expiresAt);
+
+    return reply.send({
+      accessToken,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.status(400).send({ 
+        error: "Μη έγκυρα δεδομένα εισόδου.",
+        details: error.issues.map((e) => ({ field: e.path.join('.'), message: e.message }))
+      });
+    }
+    throw error;
   }
-
-  const valid = await argon2.verify(user.passwordHash, body.password);
-  if (!valid) {
-    return reply.status(401).send({ error: "Λάθος στοιχεία εισόδου." });
-  }
-
-  const accessToken = createAccessToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-  const session = await issueRefreshSession(user.id);
-  setRefreshCookie(reply, session.token, session.expiresAt);
-
-  return reply.send({
-    accessToken,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-  });
 });
 
 app.post("/auth/refresh", async (request, reply) => {
